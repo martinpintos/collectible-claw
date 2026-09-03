@@ -1,26 +1,132 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Design tokens extracted from the Beezie Figma file (dark-only product). */
+@theme {
+  --color-bg: #0b0b0b;
+  --color-panel: #1e1e1e;
+  --color-panel-top: #232323;
+  --color-panel-mid: #1b1b1b;
+  --color-panel-bottom: #1a1a1a;
+  --color-control: #252525;
+  --color-control-border: #3c3c3c;
+  --color-input: #232323;
+  --color-chip: #2a2a2a;
+  --color-border: #2f2f2f;
+  --color-brand: #ffca28;
+  --color-brand-fg: #131313;
+  --color-fg: #f5f5f5;
+  --color-fg-secondary: #b4b4b4;
+  --color-placeholder: #9a9a9a;
+  --color-disabled: #7c7c7c;
+  --color-positive: #34d399;
+  --color-danger: #f87171;
+  --color-tier-ultra: #fbbf24;
+  --color-tier-ultra-line: #ffca28;
+  --color-tier-rare: #c084fc;
+  --color-tier-uncommon: #6ee7b7;
+  --color-tier-common: #60a5fa;
+  --color-tier-base: #aaaaaa;
+
+  --radius-panel: 20px;
+  --radius-control: 10px;
+  --radius-input: 8px;
+  --radius-chip: 6px;
+
+  --shadow-panel: 0 1px 2px rgb(0 0 0 / 0.1), 0 1px 3px rgb(0 0 0 / 0.1);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: dark;
+  background: var(--color-bg);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Lock page scroll while the pull flow / lightbox is open. */
+html:has(dialog[open]),
+html.flow-open {
+  overflow: hidden;
+}
+
+/* Tailwind v4's preflight sets `cursor: default` on buttons; restore the
+   browser's normal affordances instead of shipping unclickable-looking UI. */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+a[href],
+label[for],
+summary {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+dialog::backdrop {
+  background: transparent;
+}
+
+/* Gradient card surface used for every panel in the design. */
+@utility panel {
+  background: linear-gradient(
+    160deg,
+    var(--color-panel-top) 0%,
+    var(--color-panel-mid) 50%,
+    var(--color-panel-bottom) 100%
+  );
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-panel);
+}
+
+/* White hexagon-pattern backdrop behind slabs (matches the Figma card exports). */
+@utility bg-hex {
+  background-color: #ffffff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100' viewBox='0 0 56 100'%3E%3Cpath d='M28 66L0 50L0 16L28 0L56 16L56 50L28 66L28 100' fill='none' stroke='%23000' stroke-opacity='0.045' stroke-width='2'/%3E%3Cpath d='M28 0L28 34L0 50L0 84L28 100L56 84L56 50L28 34' fill='none' stroke='%23000' stroke-opacity='0.045' stroke-width='2'/%3E%3C/svg%3E");
+  background-size: 56px 100px;
+}
+
+/* Frosted glass for chips that sit over video/art (Sound, Animation).
+   Keep it deliberately flat: the media should remain visible through a soft,
+   neutral frost rather than looking like the control is floating above it. */
+@utility glass {
+  background: rgb(20 20 20 / 0.42);
+  /* Only the unprefixed property: Lightning CSS adds -webkit- per browserslist,
+     and hand-writing both makes it drop the standard one. */
+  backdrop-filter: blur(16px) saturate(120%);
+  border: 1px solid rgb(255 255 255 / 0.14);
+
+  &:hover:not(:disabled) {
+    background: rgb(20 20 20 / 0.5);
+    border-color: rgb(255 255 255 / 0.2);
+  }
+}
+
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility text-balance {
+  text-wrap: balance;
 }
