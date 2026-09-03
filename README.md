@@ -4,7 +4,6 @@ A standalone rebuild of the [Beezie](https://beezie.com) digital claw machine fl
 
 Everything is mocked (wallet, inventory, RNG, payments). The point of the exercise is the **feel of the experience** and the **frontend engineering underneath it**: server rendering, a reveal video that never stalls, a testable state machine, and mobile-first polish including haptics.
 
-
 ## Running it
 
 ```bash
@@ -12,14 +11,14 @@ npm install
 npm run dev        # http://localhost:3000
 ```
 
-| Script | What it does |
-| --- | --- |
-| `npm run dev` | Next dev server (Turbopack) |
-| `npm run build && npm start` | Production build + server |
-| `npm test` | Vitest unit + component tests (95 tests) |
-| `npm run typecheck` | `next typegen` + strict `tsc --noEmit` |
-| `npm run lint` | ESLint 9 with `eslint-config-next` (React Compiler rules on) |
-| `npm run check` | typecheck → lint → test |
+| Script                       | What it does                                                 |
+| ---------------------------- | ------------------------------------------------------------ |
+| `npm run dev`                | Next dev server (Turbopack)                                  |
+| `npm run build && npm start` | Production build + server                                    |
+| `npm test`                   | Vitest unit + component tests (95 tests)                     |
+| `npm run typecheck`          | `next typegen` + strict `tsc --noEmit`                       |
+| `npm run lint`               | ESLint 9 with `eslint-config-next` (React Compiler rules on) |
+| `npm run check`              | typecheck → lint → test                                      |
 
 ### Testing on a real phone
 
@@ -33,16 +32,16 @@ Requires Node ≥ 20.9. Promo codes to try: `BEEZIE10`, `CLAW20`, `WELCOME5`. Th
 
 ## What's in the box
 
-| Surface | Where |
-| --- | --- |
-| Claw page (desktop + mobile), four routable machines | `/`, `/claw/[slug]` |
-| Payment modal (centred dialog / bottom sheet) | `components/flow/PaymentModal.tsx` |
-| "Do not refresh" preparing state with "What you can pull" carousel | `components/flow/PreparingModal.tsx` |
-| Fullscreen reveal video | `components/flow/RevealVideoLayer.tsx` |
-| Single-item reveal | `components/flow/RevealSingle.tsx` |
-| Multi-item reveal: grid, multi-select, running total, 15-minute countdown | `components/flow/RevealMulti.tsx` |
-| Swap success | `components/flow/SwapSuccess.tsx` |
-| Top Items lightbox, Recent Pulls feed, odds table, sibling machines | `components/claw/*` |
+| Surface                                                                   | Where                                  |
+| ------------------------------------------------------------------------- | -------------------------------------- |
+| Claw page (desktop + mobile), four routable machines                      | `/`, `/claw/[slug]`                    |
+| Payment modal (centred dialog / bottom sheet)                             | `components/flow/PaymentModal.tsx`     |
+| "Do not refresh" preparing state with "What you can pull" carousel        | `components/flow/PreparingModal.tsx`   |
+| Fullscreen reveal video                                                   | `components/flow/RevealVideoLayer.tsx` |
+| Single-item reveal                                                        | `components/flow/RevealSingle.tsx`     |
+| Multi-item reveal: grid, multi-select, running total, 15-minute countdown | `components/flow/RevealMulti.tsx`      |
+| Swap success                                                              | `components/flow/SwapSuccess.tsx`      |
+| Top Items lightbox, Recent Pulls feed, odds table, sibling machines       | `components/claw/*`                    |
 
 ## Architecture
 
@@ -69,8 +68,8 @@ hooks/                             useRevealVideo, useHaptics, useCountdown, use
 
 "Use as much SSR as possible" was read literally: the entire page is rendered on the server and the client bundle only contains genuine interactivity.
 
-| Server-rendered (no client JS) | Client islands |
-| --- | --- |
+| Server-rendered (no client JS)                                                                                                                    | Client islands                                                                                                                                                     |
+| ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Header, footer, machine hero frame, machine details, price, odds table, tier chips, sibling machine links, Top Items grid data, Recent Pulls feed | Wallet chip (animated number), idle-video stage + Sound/Animation toggles, quantity stepper + CTA, promo code input, Top Items lightbox, and the pull flow overlay |
 
 Data flow:
@@ -96,7 +95,7 @@ idle → payment → preparing → opening → reveal → swapping → swapped
 
 - Portrait screens get the square clip, everything else the 16:9 one – chosen once per page load and never swapped after the element is activated.
 - The "Do not refresh" bar blends the dwell timer (60 %) with the real download progress (40 %), so it cannot reach 100 % before the clip is ready.
-- **iOS:** pressing *Confirm* is the user gesture. Inside that click the element is played and immediately paused (`unlock`), which activates it so the later programmatic `play()` – with sound if the user opted in – is allowed.
+- **iOS:** pressing _Confirm_ is the user gesture. Inside that click the element is played and immediately paused (`unlock`), which activates it so the later programmatic `play()` – with sound if the user opted in – is allowed.
 - Failure modes are covered: fetch failure → fall back to streaming the file with `preload="auto"`; `canplaythrough` never firing → accept `readyState ≥ 3` after 8 s; clip stalls → a watchdog advances to the reveal after its duration; tab hidden → resume on return.
 
 Verify it yourself: with the page loaded run `document.getElementById('reveal-video')` in DevTools – `readyState === 4` and `src` starts with `blob:` before you ever press Start Now. The Network panel shows one `reveal-*.mp4` request on load and none during the reveal.
@@ -105,11 +104,11 @@ Verify it yourself: with the page loaded run `document.getElementById('reveal-vi
 
 `web-haptics` is used through a small semantic layer (`lib/haptics/events.ts`) for direct interface feedback: `tap`, `select`, `tick`, `confirm`, `error`, and `success`. Reveal-video playback does not schedule haptics.
 
-| Platform | Mechanism |
-| --- | --- |
-| Android Chrome | `navigator.vibrate`, intensity emulated by PWM |
+| Platform         | Mechanism                                                         |
+| ---------------- | ----------------------------------------------------------------- |
+| Android Chrome   | `navigator.vibrate`, intensity emulated by PWM                    |
 | iOS Safari 17.4+ | the `<input type="checkbox" switch>` trick (system switch haptic) |
-| Desktop | no-op; append `?haptics=debug` to hear an audible click per pulse |
+| Desktop          | no-op; append `?haptics=debug` to hear an audible click per pulse |
 
 ### Value-first presentation
 
@@ -152,4 +151,3 @@ Catalog ids are stable. Drop a photo at `public/cards/<catalog-id>.jpg` (or `.we
 - Pulls and the recent-pulls feed live in server memory and reset on restart; the wallet is a cookie the user could edit. Both are documented mock behaviour – the shapes (`ActionResult`, `PullResult`, `SwapResult`) are what a real API would return.
 - All four machines share the one idle clip and poster that were provided.
 - The "Credit / Debit" tab is a placeholder for the Coinflow widget.
-- Haptics cannot be verified in the iOS Simulator; the choreography was tuned against the clip timeline and needs a real device pass.
