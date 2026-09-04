@@ -1,8 +1,14 @@
 "use client";
 
 import { LoaderCircle } from "lucide-react";
-import { AnimatePresence, motion, useTransform, type MotionValue } from "motion/react";
-import { useEffect, useState } from "react";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValueEvent,
+  useTransform,
+  type MotionValue,
+} from "motion/react";
+import { useEffect, useRef, useState } from "react";
 import { SlabCard } from "@/components/claw/SlabCard";
 import { money } from "@/lib/domain/format";
 import type { CatalogItem } from "@/lib/domain/types";
@@ -26,6 +32,17 @@ export function PreparingModal({
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const fill = useTransform(progress, (p) => `${Math.min(100, Math.max(0, p * 100))}%`);
+
+  // The bar is determinate, so it owes assistive tech an aria-valuenow. Written
+  // straight to the node: re-rendering this panel on every animation frame would
+  // restart the carousel's transitions for nothing.
+  const barRef = useRef<HTMLDivElement | null>(null);
+  useMotionValueEvent(progress, "change", (p) => {
+    barRef.current?.setAttribute(
+      "aria-valuenow",
+      String(Math.round(Math.min(100, Math.max(0, p * 100)))),
+    );
+  });
 
   useEffect(() => {
     if (paused || preview.length < 2) return;
@@ -92,10 +109,12 @@ export function PreparingModal({
       </div>
 
       <div
+        ref={barRef}
         role="progressbar"
         aria-label="Preparing your pull"
         aria-valuemin={0}
         aria-valuemax={100}
+        aria-valuenow={0}
         className="relative h-12 w-full select-none overflow-hidden rounded-input bg-brand"
       >
         {/* Darker gold sweeps left→right across the button as the pull prepares. */}

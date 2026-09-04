@@ -50,7 +50,7 @@ describe("PaymentModal", () => {
     const user = userEvent.setup();
     const props = setup({ paymentMethod: "card" });
     expect(screen.getByText("Coinflow widget")).toBeInTheDocument();
-    await user.click(screen.getByRole("tab", { name: "Wallet" }));
+    await user.click(screen.getByRole("radio", { name: "Wallet" }));
     expect(props.dispatch).toHaveBeenCalledWith({ type: "SET_PAYMENT_METHOD", method: "wallet" });
   });
 

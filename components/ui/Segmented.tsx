@@ -25,7 +25,7 @@ export function Segmented<T extends string>({
   const id = useId();
   return (
     <div
-      role="tablist"
+      role="radiogroup"
       aria-label={label}
       className={cn("grid h-12 rounded-control border border-border bg-control p-1", className)}
       style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
@@ -36,8 +36,8 @@ export function Segmented<T extends string>({
           <button
             key={option.value}
             type="button"
-            role="tab"
-            aria-selected={active}
+            role="radio"
+            aria-checked={active}
             onClick={() => onChange(option.value)}
             className={cn(
               "relative rounded-[8px] text-sm font-semibold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand/70",

@@ -15,7 +15,7 @@ export function PromoCode() {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const haptics = useHaptics();
-  const inputId = useId();
+  const panelId = useId();
 
   const submit = () => {
     if (!code.trim()) return;
@@ -39,18 +39,17 @@ export function PromoCode() {
         type="button"
         className="flex w-full items-center justify-between text-sm font-medium text-fg lg:pointer-events-none"
         aria-expanded={open}
+        aria-controls={panelId}
         onClick={() => setOpen((v) => !v)}
       >
-        <label htmlFor={inputId} className="cursor-pointer">
-          Apply promo code
-        </label>
+        <span>Apply promo code</span>
         <ChevronDown
           className={cn("size-4 text-fg-secondary transition-transform lg:hidden", open && "rotate-180")}
           aria-hidden
         />
       </button>
 
-      <div className={cn("mt-2 lg:block", open ? "block" : "hidden")}>
+      <div id={panelId} className={cn("mt-2 lg:block", open ? "block" : "hidden")}>
         <AnimatePresence initial={false} mode="wait">
           {promo ? (
             <motion.div
@@ -89,7 +88,7 @@ export function PromoCode() {
               }}
             >
               <input
-                id={inputId}
+                aria-label="Promo code"
                 value={code}
                 onChange={(event) => {
                   setCode(event.target.value.toUpperCase());

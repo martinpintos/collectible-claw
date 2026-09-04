@@ -23,6 +23,8 @@ export function RadioCard({
     <label
       className={cn(
         "flex cursor-pointer items-center gap-3 rounded-control border bg-control p-3 transition-colors",
+        // The <input> is sr-only, so the card itself has to carry the focus ring.
+        "has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand/70",
         checked ? "border-brand" : "border-border hover:border-control-border",
         disabled && "cursor-not-allowed opacity-50",
       )}
