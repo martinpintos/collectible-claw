@@ -12,12 +12,16 @@ import { cn } from "@/lib/utils/cn";
  */
 export function FlowOverlay({
   open,
+  closing,
   onRequestClose,
+  onCloseAnimationComplete,
   children,
   label,
 }: {
   open: boolean;
+  closing: boolean;
   onRequestClose: () => void;
+  onCloseAnimationComplete: () => void;
   children: ReactNode;
   label: string;
 }) {
@@ -60,13 +64,32 @@ export function FlowOverlay({
           role="dialog"
           aria-modal="true"
           aria-label={label}
-          className={cn("fixed inset-0 z-50 outline-none")}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0, transition: { duration: 0.2 } }}
-          transition={{ duration: 0.25 }}
+          className={cn("fixed inset-0 z-50 outline-none", closing && "pointer-events-none")}
+          initial={false}
+          // Each layer runs its own exit (the panel leads, the backdrop and its
+          // blur follow), so the container itself never fades — that would flatten
+          // the whole dismissal into one abrupt cut. The unmount lands after the
+          // backdrop reports its animation complete.
+          exit={{ opacity: 0, transition: { duration: 0.01 } }}
         >
-          <div className="absolute inset-0 bg-black/75 backdrop-blur-[3px]" onClick={onRequestClose} />
+          <motion.div
+            className="absolute inset-0 bg-black/75"
+            initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
+            // Releasing the blur on the way out mirrors the entrance instead of
+            // snapping the page back into focus.
+            animate={{
+              opacity: closing ? 0 : 1,
+              backdropFilter: closing ? "blur(0px)" : "blur(10px)",
+            }}
+            transition={{
+              duration: closing ? 0.32 : 0.24,
+              ease: closing ? [0.4, 0, 0.2, 1] : [0.22, 1, 0.36, 1],
+            }}
+            onAnimationComplete={() => {
+              if (closing) onCloseAnimationComplete();
+            }}
+            onClick={onRequestClose}
+          />
           {children}
         </motion.div>
       ) : null}

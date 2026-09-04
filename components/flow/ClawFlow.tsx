@@ -57,6 +57,7 @@ export function ClawFlow({
   const [pulling, startPull] = useTransition();
   const [swapping, startSwap] = useTransition();
   const [pendingItemId, setPendingItemId] = useState<string | null>(null);
+  const [closing, setClosing] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isMobile = useMediaQuery("(max-width: 639px)");
 
@@ -158,11 +159,26 @@ export function ClawFlow({
     [api, dispatch, runSwap],
   );
 
-  const close = useCallback(() => dispatch({ type: "CLOSE" }), [dispatch]);
+  const requestClose = useCallback(() => {
+    const phase = api.getState().phase;
+    if (closing || (phase !== "payment" && phase !== "reveal" && phase !== "swapped")) return;
+    setClosing(true);
+  }, [api, closing]);
+  const finishClose = useCallback(() => {
+    setClosing(false);
+    dispatch({ type: "CLOSE" });
+  }, [dispatch]);
+  // The overlay reports its own close animation, except in a hidden tab where
+  // rAF is paused; fall back to a timer so the flow can never get stuck.
+  useEffect(() => {
+    if (!closing) return;
+    const timer = setTimeout(finishClose, 600);
+    return () => clearTimeout(timer);
+  }, [closing, finishClose]);
   const keep = useCallback(() => {
     haptics.fire("tap");
-    dispatch({ type: "KEEP" });
-  }, [dispatch, haptics]);
+    requestClose();
+  }, [haptics, requestClose]);
   const { setMuted } = reveal;
   const toggleSound = useCallback(() => {
     haptics.fire("tap");
@@ -174,15 +190,26 @@ export function ClawFlow({
 
   /* --------------------------------------------------------------- render */
   const open = flow.phase !== "idle";
-  const inPanel = flow.phase === "payment" || flow.phase === "preparing" || flow.phase === "swapped";
+  const inPanel =
+    flow.phase === "payment" || flow.phase === "preparing" || flow.phase === "swapped";
   const label =
-    flow.phase === "payment" ? "Review and pay" : flow.phase === "preparing" ? "Preparing your pull" : "Your pull";
+    flow.phase === "payment"
+      ? "Review and pay"
+      : flow.phase === "preparing"
+        ? "Preparing your pull"
+        : "Your pull";
   const total = flow.pull ? selectTotal({ ...api.getState() }) : 0;
   const draggable = isMobile && flow.phase === "payment";
 
   return (
     <>
-      <FlowOverlay open={open} onRequestClose={close} label={label}>
+      <FlowOverlay
+        open={open}
+        closing={closing}
+        onRequestClose={requestClose}
+        onCloseAnimationComplete={finishClose}
+        label={label}
+      >
         {inPanel ? (
           <div className="pointer-events-none absolute inset-0 flex items-end justify-center sm:items-center sm:p-6">
             <motion.div
@@ -191,25 +218,37 @@ export function ClawFlow({
               dragConstraints={{ top: 0 }}
               dragElastic={0.15}
               onDragEnd={(_, info) => {
-                if (draggable && (info.offset.y > 120 || info.velocity.y > 700)) close();
+                if (draggable && (info.offset.y > 120 || info.velocity.y > 700)) requestClose();
               }}
-              transition={{ type: "spring", stiffness: 380, damping: 34 }}
-              initial={{ y: isMobile ? 80 : 24, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
+              transition={
+                closing
+                  ? { duration: 0.3, ease: [0.32, 0, 0.67, 0] }
+                  : { type: "spring", stiffness: 340, damping: 32, mass: 0.85 }
+              }
+              initial={{ y: isMobile ? 40 : 12, opacity: 0, scale: isMobile ? 1 : 0.98 }}
+              // Closing sends the sheet back the way it came: down and out on
+              // mobile, a small settle-and-fade on desktop.
+              animate={{
+                y: closing ? (isMobile ? 96 : 18) : 0,
+                opacity: closing ? 0 : 1,
+                scale: closing ? (isMobile ? 1 : 0.96) : 1,
+              }}
               className={cn(
                 "panel pointer-events-auto w-full overflow-hidden rounded-b-none p-4 sm:max-w-[460px] sm:rounded-b-panel",
                 "pb-[calc(1rem+env(safe-area-inset-bottom))] sm:pb-4",
               )}
               onClick={(event) => event.stopPropagation()}
             >
-              {isMobile ? <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-border" aria-hidden /> : null}
+              {isMobile ? (
+                <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-border" aria-hidden />
+              ) : null}
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div
                   key={flow.phase}
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.18 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.16, ease: "easeOut" }}
                 >
                   {flow.phase === "payment" ? (
                     <PaymentModal
@@ -227,7 +266,7 @@ export function ClawFlow({
                   ) : flow.phase === "preparing" ? (
                     <PreparingModal preview={preview} progress={timerProgress} />
                   ) : flow.swap ? (
-                    <SwapSuccess swap={flow.swap} onClose={close} />
+                    <SwapSuccess swap={flow.swap} onClose={requestClose} />
                   ) : null}
                 </motion.div>
               </AnimatePresence>
@@ -239,8 +278,9 @@ export function ClawFlow({
           <motion.div
             className="pointer-events-none absolute inset-x-0 bottom-0 top-20 sm:inset-0 sm:p-4"
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
+            // Settles back the way it arrived rather than blinking out.
+            animate={{ opacity: closing ? 0 : 1, scale: closing ? 0.97 : 1, y: closing ? 24 : 0 }}
+            transition={closing ? { duration: 0.3, ease: [0.32, 0, 0.67, 0] } : { duration: 0.5 }}
           >
             <div className="panel pointer-events-auto h-full w-full overflow-hidden rounded-b-none sm:rounded-panel">
               {flow.pull.items.length === 1 ? (
@@ -251,7 +291,7 @@ export function ClawFlow({
                   expired={flow.expired}
                   onSwap={swapSelected}
                   onKeep={keep}
-                  onClose={close}
+                  onClose={requestClose}
                 />
               ) : (
                 <RevealMulti
@@ -269,7 +309,7 @@ export function ClawFlow({
                   onSwapSelected={swapSelected}
                   onSwapOne={swapOne}
                   onExpire={expire}
-                  onClose={close}
+                  onClose={requestClose}
                 />
               )}
             </div>

@@ -32,6 +32,21 @@ if (typeof window !== "undefined") {
     value: vi.fn(),
   });
 
+  // jsdom has no modal dialog implementation; keep `open` in sync so components
+  // that drive a <dialog> imperatively behave the same way they do in a browser.
+  if (!HTMLDialogElement.prototype.showModal) {
+    HTMLDialogElement.prototype.showModal = function showModal(this: HTMLDialogElement) {
+      this.open = true;
+    };
+    HTMLDialogElement.prototype.show = function show(this: HTMLDialogElement) {
+      this.open = true;
+    };
+    HTMLDialogElement.prototype.close = function close(this: HTMLDialogElement) {
+      this.open = false;
+      this.dispatchEvent(new Event("close"));
+    };
+  }
+
   if (!URL.createObjectURL) {
     URL.createObjectURL = vi.fn(() => "blob:mock");
   }
