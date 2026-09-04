@@ -19,6 +19,7 @@ function setup(overrides: Partial<React.ComponentProps<typeof PaymentModal>> = {
     error: null,
     pending: false,
     onConfirm: vi.fn(),
+    onClose: vi.fn(),
     dispatch: vi.fn(),
     ...overrides,
   };
@@ -67,6 +68,6 @@ describe("PaymentModal", () => {
     const props = setup({ error: "Something went wrong" });
     expect(screen.getByRole("alert")).toHaveTextContent("Something went wrong");
     await user.click(screen.getByRole("button", { name: "Close" }));
-    expect(props.dispatch).toHaveBeenCalledWith({ type: "CLOSE" });
+    expect(props.onClose).toHaveBeenCalledTimes(1);
   });
 });

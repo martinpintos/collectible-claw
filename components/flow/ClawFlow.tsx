@@ -116,19 +116,25 @@ export function ClawFlow({
     timerRef.current = setTimeout(() => dispatch({ type: "MIN_TIMER_DONE" }), MIN_PREPARING_MS);
 
     startPull(async () => {
-      const result = await pullFromMachine({
-        machineSlug: state.machineSlug,
-        quantity: state.quantity,
-        promoCode: state.promo?.code,
-        paymentMethod: state.paymentMethod,
-        wallet: state.wallet,
-      });
-      if (result.ok) {
-        dispatch({ type: "PULL_SUCCEEDED", pull: result.data });
-      } else {
+      const fail = (error: string) => {
         if (timerRef.current) clearTimeout(timerRef.current);
         haptics.fire("error");
-        dispatch({ type: "PULL_FAILED", error: result.error });
+        dispatch({ type: "PULL_FAILED", error });
+      };
+      try {
+        const result = await pullFromMachine({
+          machineSlug: state.machineSlug,
+          quantity: state.quantity,
+          promoCode: state.promo?.code,
+          paymentMethod: state.paymentMethod,
+          wallet: state.wallet,
+        });
+        if (result.ok) dispatch({ type: "PULL_SUCCEEDED", pull: result.data });
+        else fail(result.error);
+      } catch {
+        // The action itself never answered. Nothing was charged: the wallet is
+        // only written once the pull resolves on the server.
+        fail("We couldn't reach the machine. Nothing was charged — try again.");
       }
     });
   }, [api, dispatch, haptics, reveal, sound, timerProgress]);
@@ -142,14 +148,21 @@ export function ClawFlow({
       dispatch({ type: "SWAP" });
       const pullId = state.pull.pullId;
       startSwap(async () => {
-        const [result] = await Promise.all([swapItems({ pullId, itemIds }), delay(MIN_SWAP_MS)]);
-        setPendingItemId(null);
-        if (result.ok) {
-          haptics.fire("success");
-          dispatch({ type: "SWAP_SUCCEEDED", swap: result.data });
-        } else {
+        try {
+          const [result] = await Promise.all([swapItems({ pullId, itemIds }), delay(MIN_SWAP_MS)]);
+          setPendingItemId(null);
+          if (result.ok) {
+            haptics.fire("success");
+            dispatch({ type: "SWAP_SUCCEEDED", swap: result.data });
+          } else {
+            haptics.fire("error");
+            dispatch({ type: "SWAP_FAILED", error: result.error });
+          }
+        } catch {
+          // Back to the reveal with the items intact; the swap window is still open.
+          setPendingItemId(null);
           haptics.fire("error");
-          dispatch({ type: "SWAP_FAILED", error: result.error });
+          dispatch({ type: "SWAP_FAILED", error: "That didn't go through. Your items are safe — try again." });
         }
       });
     },
@@ -275,6 +288,7 @@ export function ClawFlow({
                       error={flow.error}
                       pending={pulling}
                       onConfirm={confirm}
+                      onClose={requestClose}
                       dispatch={dispatch}
                     />
                   ) : flow.phase === "preparing" ? (

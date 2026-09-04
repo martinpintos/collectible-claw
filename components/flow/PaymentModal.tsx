@@ -26,6 +26,7 @@ interface PaymentModalProps {
   error: string | null;
   pending: boolean;
   onConfirm: () => void;
+  onClose: () => void;
   dispatch: (event: FlowEvent) => void;
 }
 
@@ -39,6 +40,7 @@ export function PaymentModal({
   error,
   pending,
   onConfirm,
+  onClose,
   dispatch,
 }: PaymentModalProps) {
   const haptics = useHaptics();
@@ -50,7 +52,7 @@ export function PaymentModal({
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold text-fg">Review &amp; pay</h2>
-        <IconButton label="Close" onClick={() => dispatch({ type: "CLOSE" })} disabled={pending}>
+        <IconButton label="Close" onClick={onClose} disabled={pending}>
           <X className="size-5" />
         </IconButton>
       </div>
