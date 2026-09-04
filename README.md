@@ -50,6 +50,7 @@ Next 16 refuses dev-server requests from any origin other than the allow-listed 
 app/
   page.tsx, claw/[slug]/page.tsx   Server Components (dynamic SSR, streamed)
   actions.ts                       Server Actions: pullFromMachine · swapItems · applyPromo (zod-validated)
+  error.tsx, global-error.tsx      Recoverable fallbacks (`retry()`); not-found.tsx for unknown slugs
 components/
   claw/                            Page sections – server components + small client islands
   flow/                            The pull flow (client) – overlay, modals, reveal screens, video layer
@@ -113,7 +114,7 @@ Two things go wrong with modals often enough to be worth solving once, in one pl
 ### Motion and micro-interactions
 
 - The primary CTAs (Start Now, Confirm) carry a charged hover state: a conic-gradient light travelling counter-clockwise around the border behind a ring mask, embers rising from the base, a cursor-tracking bloom, and a ring burst from the exact press point. All of it is composited transform and opacity work, mounted only while the pointer is on the button.
-- Chips that sit over video (Sound, Animation, Skip) are real frosted glass. Note that hand-writing both `backdrop-filter` and `-webkit-backdrop-filter` makes Lightning CSS drop the standard property; write the unprefixed one and let it add the prefix.
+- Chips that sit over video (Sound on the reveal, Sound/Animation on the idle stage) are real frosted glass. Note that hand-writing both `backdrop-filter` and `-webkit-backdrop-filter` makes Lightning CSS drop the standard property; write the unprefixed one and let it add the prefix.
 - Any element using `mix-blend-mode` inside an overlay needs `isolation: isolate`, otherwise it joins the overlay's blend group and the overlay's `backdrop-filter` composites twice — the blur visibly deepens on hover.
 - `MotionConfig reducedMotion="user"` is set globally, and the CTA's embers and burst are skipped explicitly under a reduced-motion preference.
 
