@@ -1,7 +1,7 @@
-import { Info } from "lucide-react";
 import { money } from "@/lib/domain/format";
 import { tiersInOrder } from "@/lib/domain/odds";
 import type { RarityTier } from "@/lib/domain/types";
+import { OddsInfo } from "./OddsInfo";
 import { TierChip } from "./TierChip";
 
 export function OddsTable({ tiers, averageValue }: { tiers: RarityTier[]; averageValue: number }) {
@@ -11,10 +11,7 @@ export function OddsTable({ tiers, averageValue }: { tiers: RarityTier[]; averag
         <div>
           <h3 id="odds-heading" className="flex items-center gap-1.5 text-lg font-semibold text-white">
             Odds
-            <span title="Odds are published per machine and update as inventory changes." className="text-fg-secondary">
-              <Info className="size-3.5" aria-hidden />
-              <span className="sr-only">Odds are published per machine and update as inventory changes.</span>
-            </span>
+            <OddsInfo />
           </h3>
           <p className="text-xs text-fg-secondary">Updates every few seconds.</p>
         </div>
