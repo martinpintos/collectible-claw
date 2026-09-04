@@ -69,6 +69,12 @@ describe("pullFromMachine", () => {
     expect(getPull(pull.pullId)?.items).toHaveLength(3);
   });
 
+  it("refuses the view-only external wallet", async () => {
+    const result = await pullFromMachine({ machineSlug: "solana-claw", quantity: 1, paymentMethod: "wallet", wallet: "external" });
+    expect(result).toMatchObject({ ok: false, code: "INSUFFICIENT_FUNDS" });
+    expect(jar.get(WALLET_COOKIE)).toBeUndefined();
+  });
+
   it("does not debit the wallet when paying by card", async () => {
     const result = await pullFromMachine({ machineSlug: "wildcard", quantity: 2, paymentMethod: "card" });
     expect(result.ok).toBe(true);
