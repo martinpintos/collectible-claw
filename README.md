@@ -58,6 +58,7 @@ lib/
   domain/                          Pure, isomorphic logic: odds, draw, pricing, format, cookie codecs
   data/                            Mock catalog, machines, promos + server-only repository & card-art resolver
   video/preloader.ts               Blob preloader for the reveal clip (framework-agnostic external store)
+  effects/confetti.ts              Side-cannon confetti for the reveal (canvas-confetti, loaded on demand)
   haptics/events.ts                Semantic haptic events
   utils/scroll-lock.ts             Refcounted scroll lock that does not move the page
 store/
@@ -126,9 +127,11 @@ Two things go wrong with modals often enough to be worth solving once, in one pl
 | iOS Safari 17.4+ | the `<input type="checkbox" switch>` trick (system switch haptic) |
 | Desktop          | no-op; append `?haptics=debug` to hear an audible click per pulse |
 
-### Restraint around outcomes
+### The celebration, and its limits
 
-Rarity colour appears where it is information — the published odds table, and market values in the feeds. The reveal itself treats every pull identically: no jackpot fanfare, no confetti, no rarity-scaled effects. A paid random outcome should not be dressed up by the interface that sold it.
+The reveal is celebrated: as the opening video hands over to the reveal screen, three volleys of confetti fire in from just off both edges (`lib/effects/confetti.ts`), so the streams cross in front of the card rather than raining onto it. `canvas-confetti` is imported on demand, so it stays out of the initial bundle; the burst is cancelled if the reveal is dismissed mid-volley, fires once per pull (a failed swap returns to `reveal` and must not re-trigger it), and is skipped entirely under `prefers-reduced-motion`.
+
+What it deliberately does **not** do is scale with the outcome. Every pull gets the same volley in the same brand colours, and rarity colour stays where it is information — the published odds table and the market values in the feeds. The interface should celebrate that you opened something, not grade how well the gamble paid.
 
 ## Responsive notes
 
@@ -141,7 +144,7 @@ Rarity colour appears where it is information — the published odds table, and 
 
 Vitest + jsdom + Testing Library for everything that can run without a browser; Playwright for what cannot. Per Next's own guidance, async Server Components are not unit-testable, so the split is:
 
-- **Pure logic** — odds normalisation and invariants, weighted draw (seeded, 20 000-sample distribution check), pricing/promo/swap maths, formatting, cookie codecs, the video preloader (mocked chunked fetch, fallback, timeout), the flow reducer (every guard, all gate orders), and the scroll lock (refcounting, idempotent release, measured compensation).
+- **Pure logic** — odds normalisation and invariants, weighted draw (seeded, 20 000-sample distribution check), pricing/promo/swap maths, formatting, cookie codecs, the video preloader (mocked chunked fetch, fallback, timeout), the flow reducer (every guard, all gate orders), the scroll lock (refcounting, idempotent release, measured compensation), and the confetti volleys (aim, scheduling, cancellation — the library is injected).
 - **Server Actions** — with `next/headers` mocked: validation, insufficient funds, wallet debit/credit, swap of foreign/duplicate/expired items.
 - **Components** — Stepper, PaymentModal, RevealMulti (selection, totals, countdown with fake timers), the odds explainer dialog.
 
