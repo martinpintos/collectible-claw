@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { motion } from "motion/react";
 import { cn } from "@/lib/utils/cn";
 
 export function RadioCard({
@@ -41,7 +42,12 @@ export function RadioCard({
           checked ? "border-brand" : "border-fg-secondary",
         )}
       >
-        <span className={cn("size-2 rounded-full bg-brand transition-transform", checked ? "scale-100" : "scale-0")} />
+        <motion.span
+          initial={false}
+          animate={{ scale: checked ? 1 : 0 }}
+          transition={{ type: "spring", stiffness: 500, damping: 28 }}
+          className="size-2 rounded-full bg-brand"
+        />
       </span>
       <span className="min-w-0">
         <span className="block text-sm font-semibold text-fg">{title}</span>
