@@ -43,6 +43,8 @@
 html {
   color-scheme: dark;
   background: var(--color-bg);
+  /* Keep layout width stable when a dialog or flow overlay locks document scroll. */
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -52,9 +54,10 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Lock page scroll while the pull flow / lightbox is open. */
-html:has(dialog[open]),
-html.flow-open {
+/* Scroll lock for every overlay (native <dialog> and the pull flow alike).
+   Applied by lib/utils/scroll-lock.ts, which also measures and gives back the
+   scrollbar width on engines that do not honour `scrollbar-gutter`. */
+html.scroll-locked {
   overflow: hidden;
 }
 

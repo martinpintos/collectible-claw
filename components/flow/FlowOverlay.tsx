@@ -1,7 +1,8 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, type ReactNode } from "react";
+import { lockScroll } from "@/lib/utils/scroll-lock";
 import { cn } from "@/lib/utils/cn";
 
 /**
@@ -24,19 +25,17 @@ export function FlowOverlay({
   const lastFocused = useRef<Element | null>(null);
 
   // Scroll lock + make the page behind inert while the flow is open.
-  useEffect(() => {
+  useLayoutEffect(() => {
+    if (!open) return;
     const root = document.getElementById("page-root");
-    const html = document.documentElement;
-    if (open) {
-      lastFocused.current = document.activeElement;
-      html.classList.add("flow-open");
-      root?.setAttribute("inert", "");
-      panelRef.current?.focus({ preventScroll: true });
-    }
+    lastFocused.current = document.activeElement;
+    const releaseScroll = lockScroll();
+    root?.setAttribute("inert", "");
+    panelRef.current?.focus({ preventScroll: true });
     return () => {
-      html.classList.remove("flow-open");
+      releaseScroll();
       root?.removeAttribute("inert");
-      if (open && lastFocused.current instanceof HTMLElement) {
+      if (lastFocused.current instanceof HTMLElement) {
         lastFocused.current.focus({ preventScroll: true });
       }
     };

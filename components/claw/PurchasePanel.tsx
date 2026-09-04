@@ -45,8 +45,10 @@ export function PurchasePanel() {
 
 /** Fixed bottom bar on mobile so the CTA is always reachable. */
 export function StickyPurchaseBar() {
+  // A fixed bar keeps the full viewport width, so the scroll-lock gap that the
+  // page padding covers has to be paid here too.
   return (
-    <div className="pb-safe fixed inset-x-0 bottom-0 z-20 border-t border-border/80 bg-bg/90 backdrop-blur-md lg:hidden">
+    <div className="pb-safe fixed inset-x-0 bottom-0 z-20 border-t border-border/80 bg-bg/90 pr-[var(--scroll-lock-gap,0px)] backdrop-blur-md lg:hidden">
       <div className="px-4 py-3">
         <PurchaseControls />
       </div>
