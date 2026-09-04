@@ -3,18 +3,19 @@
 import { refresh } from "next/cache";
 import { cookies } from "next/headers";
 import { z } from "zod";
-import {
-  getCatalog,
-  getMachine,
-  getPull,
-  markSwapped,
-  recordRecentPull,
-  savePull,
-} from "@/lib/data/repository";
+import { getCatalog, getMachine, recordRecentPull } from "@/lib/data/repository";
 import { findPromo, normalizePromoCode } from "@/lib/data/promos";
 import { drawItems } from "@/lib/domain/draw";
 import { SWAP_WINDOW_MS, priceFor, round2, swapPoints, swapValue } from "@/lib/domain/pricing";
 import { secureRng } from "@/lib/domain/rng";
+import {
+  SWAP_TICKET_COOKIE,
+  type SwapTicket,
+  parseSwapTickets,
+  serializeSwapTickets,
+  ticketFromPull,
+  withTicket,
+} from "@/lib/domain/swap-ticket";
 import type {
   ActionErrorCode,
   ActionResult,
@@ -59,6 +60,26 @@ async function writeWallet(wallet: WalletSnapshot): Promise<void> {
     sameSite: "lax",
   });
   refresh();
+}
+
+async function readSwapTickets(): Promise<SwapTicket[]> {
+  const store = await cookies();
+  return parseSwapTickets(store.get(SWAP_TICKET_COOKIE)?.value);
+}
+
+/**
+ * Add or replace one offer. The cookie is short-lived like the offer itself and
+ * HttpOnly because only the server ever reads it back.
+ */
+async function writeSwapTicket(ticket: SwapTicket, existing: SwapTicket[]): Promise<void> {
+  const store = await cookies();
+  store.set(SWAP_TICKET_COOKIE, serializeSwapTickets(withTicket(existing, ticket)), {
+    path: "/",
+    maxAge: Math.ceil(SWAP_WINDOW_MS / 1000),
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+  });
 }
 
 function fail<T>(code: ActionErrorCode, error: string): ActionResult<T> {
@@ -129,7 +150,7 @@ export async function pullFromMachine(raw: unknown): Promise<ActionResult<PullRe
     expiresAt: new Date(Date.now() + SWAP_WINDOW_MS).toISOString(),
   };
 
-  savePull(pull);
+  await writeSwapTicket(ticketFromPull(pull), await readSwapTickets());
   for (const item of items) {
     recordRecentPull({
       id: item.instanceId,
@@ -145,25 +166,27 @@ export async function pullFromMachine(raw: unknown): Promise<ActionResult<PullRe
   return { ok: true, data: pull };
 }
 
-/** Swap one or more items from a stored pull. Values are recomputed server-side. */
+/** Swap one or more items from an open offer. Values are recomputed server-side. */
 export async function swapItems(raw: unknown): Promise<ActionResult<SwapResult>> {
   const parsed = swapInput.safeParse(raw);
   if (!parsed.success) return fail("INVALID_INPUT", "That request doesn't look right.");
   const { pullId, itemIds } = parsed.data;
 
-  const pull = getPull(pullId);
-  if (!pull) return fail("NOT_FOUND", "This pull has expired. Please pull again.");
-  if (Date.now() > Date.parse(pull.expiresAt))
+  const tickets = await readSwapTickets();
+  const ticket = tickets.find((entry) => entry.pullId === pullId);
+  if (!ticket) return fail("NOT_FOUND", "This pull has expired. Please pull again.");
+  const expiresAt = Date.parse(ticket.expiresAt);
+  if (!Number.isFinite(expiresAt) || Date.now() > expiresAt)
     return fail("EXPIRED", "The swap offer has expired.");
 
   const unique = [...new Set(itemIds)];
-  const items = unique.map((id) => pull.items.find((item) => item.instanceId === id));
-  if (items.some((item) => !item))
+  const values = unique.map((id) => ticket.values[id]);
+  if (values.some((value) => value === undefined))
     return fail("INVALID_INPUT", "One of those items isn't part of this pull.");
-  if (unique.some((id) => pull.swappedIds.has(id)))
+  if (unique.some((id) => ticket.swappedIds.includes(id)))
     return fail("INVALID_INPUT", "Item already swapped.");
 
-  const credited = round2(items.reduce((sum, item) => sum + item!.swapValue, 0));
+  const credited = round2(values.reduce((sum, value) => sum + value, 0));
   const points = swapPoints(credited);
   const wallet = await readWallet();
   const nextWallet: WalletSnapshot = {
@@ -171,7 +194,7 @@ export async function swapItems(raw: unknown): Promise<ActionResult<SwapResult>>
     points: wallet.points + points,
   };
 
-  markSwapped(pullId, unique);
+  await writeSwapTicket({ ...ticket, swappedIds: [...ticket.swappedIds, ...unique] }, tickets);
   await writeWallet(nextWallet);
   return {
     ok: true,

@@ -1,12 +1,6 @@
 import "server-only";
 import { tierForValue } from "@/lib/domain/odds";
-import type {
-  CatalogItem,
-  Machine,
-  PullResult,
-  RecentPull,
-  TopItem,
-} from "@/lib/domain/types";
+import type { CatalogItem, Machine, RecentPull, TopItem } from "@/lib/domain/types";
 import { resolveCardImage } from "./card-art";
 import { CATALOG, findCatalogEntry } from "./catalog";
 import { DEFAULT_MACHINE_SLUG, MACHINES, findMachine } from "./machines";
@@ -91,11 +85,10 @@ export async function getCatalogPreview(machine: Machine, limit = 8): Promise<Ca
 }
 
 /* ---------------------------------------------------------------------------
- * In-memory state (pulls + recent feed). Attached to globalThis so it survives
+ * In-memory state (the recent-pulls feed). Attached to globalThis so it survives
  * HMR in `next dev`. Resets on server restart — documented as mock behaviour.
  * ------------------------------------------------------------------------- */
 type MemoryStore = {
-  pulls: Map<string, PullResult & { swappedIds: Set<string> }>;
   recentPulls: RecentPull[];
 };
 
@@ -124,7 +117,7 @@ function seedRecentPulls(): RecentPull[] {
 
 function memory(): MemoryStore {
   if (!globalThis.__clawMemoryStore) {
-    globalThis.__clawMemoryStore = { pulls: new Map(), recentPulls: seedRecentPulls() };
+    globalThis.__clawMemoryStore = { recentPulls: seedRecentPulls() };
   }
   return globalThis.__clawMemoryStore;
 }
@@ -138,20 +131,6 @@ export function recordRecentPull(pull: RecentPull): void {
   const feed = memory().recentPulls;
   feed.unshift(pull);
   if (feed.length > 50) feed.length = 50;
-}
-
-export function savePull(pull: PullResult): void {
-  memory().pulls.set(pull.pullId, { ...pull, swappedIds: new Set() });
-}
-
-export function getPull(pullId: string): (PullResult & { swappedIds: Set<string> }) | null {
-  return memory().pulls.get(pullId) ?? null;
-}
-
-export function markSwapped(pullId: string, itemIds: string[]): void {
-  const pull = memory().pulls.get(pullId);
-  if (!pull) return;
-  for (const id of itemIds) pull.swappedIds.add(id);
 }
 
 /** Test helper – wipes the in-memory store. */

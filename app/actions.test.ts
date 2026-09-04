@@ -15,7 +15,10 @@ vi.mock("next/headers", () => ({
 vi.mock("next/cache", () => ({ refresh: () => {} }));
 
 const { applyPromo, pullFromMachine, swapItems } = await import("./actions");
-const { __resetMemoryStore, getPull } = await import("@/lib/data/repository");
+const { __resetMemoryStore } = await import("@/lib/data/repository");
+const { SWAP_TICKET_COOKIE, parseSwapTickets, serializeSwapTickets } = await import(
+  "@/lib/domain/swap-ticket"
+);
 
 beforeEach(() => {
   jar.clear();
@@ -66,7 +69,9 @@ describe("pullFromMachine", () => {
       expect(item.swapValue).toBeCloseTo(item.marketValue * 0.85, 2);
     }
     expect(jar.get(WALLET_COOKIE)).toBe(serializeWallet(pull.wallet));
-    expect(getPull(pull.pullId)?.items).toHaveLength(3);
+    const [ticket] = parseSwapTickets(jar.get(SWAP_TICKET_COOKIE));
+    expect(ticket.pullId).toBe(pull.pullId);
+    expect(Object.keys(ticket.values)).toHaveLength(3);
   });
 
   it("refuses the view-only external wallet", async () => {
@@ -104,6 +109,60 @@ describe("swapItems", () => {
     expect(result.data.swappedItemIds).toEqual(ids);
   });
 
+  it("survives a server instance that never saw the pull", async () => {
+    const p = await pull(1);
+    // The swap ticket lives in the cookie jar, so a fresh process still honours it.
+    __resetMemoryStore();
+    expect(await swapItems({ pullId: p.pullId, itemIds: [p.items[0].instanceId] })).toMatchObject({
+      ok: true,
+    });
+  });
+
+  it("rejects a tampered ticket", async () => {
+    const p = await pull(1);
+    const [body, signature] = jar.get(SWAP_TICKET_COOKIE)!.split(".");
+    const forged = JSON.parse(Buffer.from(body, "base64url").toString("utf8"));
+    forged[0].v[p.items[0].instanceId] = 999_999;
+    const tampered = `${Buffer.from(JSON.stringify(forged)).toString("base64url")}.${signature}`;
+    jar.set(SWAP_TICKET_COOKIE, tampered);
+    expect(await swapItems({ pullId: p.pullId, itemIds: [p.items[0].instanceId] })).toMatchObject({
+      ok: false,
+      code: "NOT_FOUND",
+    });
+  });
+
+  it("keeps an earlier offer swappable after another pull", async () => {
+    const first = await pull(1);
+    await pull(1);
+    expect(
+      await swapItems({ pullId: first.pullId, itemIds: [first.items[0].instanceId] }),
+    ).toMatchObject({ ok: true });
+  });
+
+  it("credits every selected item in one multi-item swap, once", async () => {
+    const p = await pull(4);
+    const ids = p.items.map((i) => i.instanceId);
+    const first = await swapItems({ pullId: p.pullId, itemIds: [ids[0], ids[1], ids[0]] });
+    expect(first).toMatchObject({ ok: true });
+    if (!first.ok) return;
+    const expected =
+      Math.round((p.items[0].swapValue + p.items[1].swapValue) * 100) / 100;
+    expect(first.data.credited).toBe(expected);
+    expect(first.data.swappedItemIds).toEqual([ids[0], ids[1]]);
+
+    // The remaining two are still swappable; the first two are not.
+    expect(await swapItems({ pullId: p.pullId, itemIds: [ids[1], ids[2]] })).toMatchObject({
+      ok: false,
+      code: "INVALID_INPUT",
+    });
+    const second = await swapItems({ pullId: p.pullId, itemIds: [ids[2], ids[3]] });
+    expect(second).toMatchObject({ ok: true });
+    if (!second.ok) return;
+    expect(second.data.credited).toBe(
+      Math.round((p.items[2].swapValue + p.items[3].swapValue) * 100) / 100,
+    );
+  });
+
   it("rejects ids that are not part of the pull, double swaps and unknown pulls", async () => {
     const p = await pull(1);
     expect(await swapItems({ pullId: p.pullId, itemIds: ["not-mine"] })).toMatchObject({ ok: false, code: "INVALID_INPUT" });
@@ -114,8 +173,11 @@ describe("swapItems", () => {
 
   it("rejects expired offers", async () => {
     const p = await pull(1);
-    const stored = getPull(p.pullId)!;
-    stored.expiresAt = new Date(Date.now() - 1000).toISOString();
+    const [ticket] = parseSwapTickets(jar.get(SWAP_TICKET_COOKIE));
+    jar.set(
+      SWAP_TICKET_COOKIE,
+      serializeSwapTickets([{ ...ticket, expiresAt: new Date(Date.now() - 1000).toISOString() }]),
+    );
     expect(await swapItems({ pullId: p.pullId, itemIds: [p.items[0].instanceId] })).toMatchObject({ ok: false, code: "EXPIRED" });
   });
 });

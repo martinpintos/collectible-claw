@@ -82,7 +82,7 @@ hooks/                             useRevealVideo, useAnimatedDialog, useHaptics
 
 - **Mock data lives on the server** (`lib/data/*`, imported with `server-only`) behind async repository functions with small artificial latencies. Top Items and Recent Pulls are wrapped in `<Suspense>` so they **stream** after the above-the-fold HTML; the skeletons are visible on a cold load.
 - **The route is dynamic on purpose.** `MachinePage` reads two cookies (`cc_prefs`, `cc_wallet`), so the first HTML already carries the visitor's sound/animation preference and wallet balance — no hydration flash, no client fetch. `generateStaticParams` + `dynamicParams = false` act as the slug allow-list (`/claw/anything-else` → 404). Drop the two cookie reads and the route prerenders at build time with identical markup.
-- **Mutations are Server Actions.** The pull is decided on the server with a CSPRNG over the published odds; the swap credit is recomputed server-side from the stored pull and never trusted from the client. Because the actions write the wallet cookie, Next re-renders the route in the same round trip — the server-rendered header balance and Recent Pulls update with no client wiring at all.
+- **Mutations are Server Actions.** The pull is decided on the server with a CSPRNG over the published odds; the swap credit is recomputed server-side from a signed, HttpOnly swap-offer cookie (`lib/domain/swap-ticket.ts`) and never trusted from the client. Because the actions write the wallet cookie, Next re-renders the route in the same round trip — the server-rendered header balance and Recent Pulls update with no client wiring at all.
 - `cacheComponents` (PPR) is intentionally off: it changes the caching model and would demand Suspense around every request-time read on a page that is already fully dynamic.
 
 ### The pull flow as a state machine
@@ -174,7 +174,7 @@ Catalog ids are stable. Drop a photo at `public/cards/<catalog-id>.jpg` (or `.we
 
 ## Trade-offs and what's mocked
 
-- Pulls and the recent-pulls feed live in server memory and reset on restart; the wallet is a cookie the user could edit. Both are documented mock behaviour — the shapes (`ActionResult`, `PullResult`, `SwapResult`) are what a real API would return.
+- The recent-pulls feed lives in server memory and resets on restart; the wallet is a cookie the user could edit. The swap offer is a signed cookie rather than server memory, so it survives the serverless instance hop between the pull and the swap (set `CLAW_SWAP_SECRET` per environment; there is a demo fallback). All of this is documented mock behaviour — the shapes (`ActionResult`, `PullResult`, `SwapResult`) are what a real API would return.
 - All four machines share the one idle clip and poster that were provided.
 - The "Credit / Debit" tab is a placeholder for the Coinflow widget.
 - Haptics are verifiable only on real hardware; iOS support rides on a documented Safari quirk and degrades to nothing everywhere else.
