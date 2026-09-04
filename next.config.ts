@@ -17,7 +17,9 @@ const lanAddresses = Object.values(os.networkInterfaces())
   .map((iface) => iface.address);
 
 const nextConfig: NextConfig = {
-  allowedDevOrigins: [...lanAddresses, "*.local", "localhost"],
+  // `127.0.0.1` is a different origin from `localhost`, and it is what the
+  // Playwright config points at, so it has to be allow-listed too.
+  allowedDevOrigins: [...lanAddresses, "*.local", "localhost", "127.0.0.1"],
   images: {
     // Next 16 only allows quality 75 by default; slabs are rendered at 90.
     qualities: [75, 90],
