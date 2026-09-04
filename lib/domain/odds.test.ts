@@ -5,7 +5,6 @@ import {
   BPS_TOTAL,
   assertOdds,
   averageValue,
-  cumulativeBps,
   formatOdds,
   percentagesToBps,
   tierForValue,
@@ -78,13 +77,6 @@ describe("helpers", () => {
   it("formats odds with two decimals", () => {
     expect(formatOdds(72)).toBe("0.72%");
     expect(formatOdds(7505)).toBe("75.05%");
-  });
-
-  it("accumulates odds from the top tier down", () => {
-    const gold = MACHINES.find((m) => m.slug === "pokemon-gold-claw")!;
-    expect(cumulativeBps(gold.tiers, "ultra")).toBe(72);
-    expect(cumulativeBps(gold.tiers, "rare")).toBe(91);
-    expect(cumulativeBps(gold.tiers, "base")).toBe(BPS_TOTAL);
   });
 
   it("computes an expected value weighted by the odds", () => {

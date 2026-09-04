@@ -21,20 +21,12 @@ type FireOptions = { intensity?: number };
 
 type HapticsApi = {
   fire: (event: HapticEvent, options?: FireOptions) => void;
+  /** Escape hatch for one-off patterns that do not have a semantic event yet. */
   trigger: (input: HapticInput, options?: FireOptions) => void;
-  cancel: () => void;
-  isSupported: boolean;
-  debug: boolean;
 };
 
 const noop = () => {};
-const HapticsContext = createContext<HapticsApi>({
-  fire: noop,
-  trigger: noop,
-  cancel: noop,
-  isSupported: false,
-  debug: false,
-});
+const HapticsContext = createContext<HapticsApi>({ fire: noop, trigger: noop });
 
 const subscribeNever = () => noop;
 const readDebugFlag = () =>
@@ -67,12 +59,7 @@ export function HapticsProvider({ children }: { children: ReactNode }) {
     [trigger],
   );
 
-  const cancel = useCallback(() => engine.current?.cancel(), []);
-
-  const value = useMemo<HapticsApi>(
-    () => ({ fire, trigger, cancel, isSupported: WebHaptics.isSupported, debug }),
-    [fire, trigger, cancel, debug],
-  );
+  const value = useMemo<HapticsApi>(() => ({ fire, trigger }), [fire, trigger]);
 
   return <HapticsContext.Provider value={value}>{children}</HapticsContext.Provider>;
 }

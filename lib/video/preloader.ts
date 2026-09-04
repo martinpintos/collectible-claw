@@ -164,22 +164,6 @@ export function createPreloader(options: PreloaderOptions = {}) {
     }
   }
 
-  function reset(): void {
-    controller?.abort();
-    controller = null;
-    startPromise = null;
-    attached = null;
-    setState({
-      status: "idle",
-      progress: 0,
-      url: null,
-      objectUrl: null,
-      usedFallback: false,
-      degraded: false,
-      error: null,
-    });
-  }
-
   return {
     getSnapshot: () => state,
     subscribe(listener: () => void) {
@@ -189,7 +173,6 @@ export function createPreloader(options: PreloaderOptions = {}) {
     start,
     attach,
     unlock,
-    reset,
   };
 }
 

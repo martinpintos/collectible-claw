@@ -70,5 +70,5 @@ export function useRevealVideo(media: MachineMedia) {
     }
   }, []);
 
-  return { videoRef, state, variant, url, unlock, play, stop, setMuted };
+  return { videoRef, state, unlock, play, stop, setMuted };
 }

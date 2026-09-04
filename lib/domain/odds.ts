@@ -67,15 +67,6 @@ export function formatOdds(bps: number): string {
   return `${bpsToPercent(bps).toFixed(2)}%`;
 }
 
-/** Probability of the pull landing in `tierId` or better (used for rarity styling). */
-export function cumulativeBps(tiers: RarityTier[], tierId: TierId): number {
-  const idx = TIER_ORDER.indexOf(tierId);
-  return TIER_ORDER.slice(0, idx + 1).reduce(
-    (sum, id) => sum + (tiers.find((t) => t.id === id)?.oddsBps ?? 0),
-    0,
-  );
-}
-
 /**
  * Expected market value of a single pull: Σ p(tier) × mean(value of items in tier).
  * Tiers without items contribute nothing (data tests guarantee every tier is stocked).

@@ -40,46 +40,46 @@ export async function MachinePage({ slug }: { slug: string }) {
     <PrefsProvider initial={prefs}>
       <ClawFlowProvider machineSlug={machine.slug} maxQuantity={machine.maxQuantity}>
         <div id="page-root" className="flex min-h-full flex-1 flex-col">
-        <Header wallet={wallet} />
-        <main className="mx-auto w-full max-w-[1380px] flex-1 px-4 pb-28 pt-6 sm:px-6 lg:px-8 lg:pb-12">
-          <div className="grid gap-6 lg:grid-cols-2 lg:items-stretch">
-            <MachineHero machine={machine} />
-            <MachineDetails machine={machine} machines={machines} averageValue={machineAverageValue} />
-          </div>
+          <Header wallet={wallet} />
+          <main className="mx-auto w-full max-w-[1380px] flex-1 px-4 pb-28 pt-6 sm:px-6 lg:px-8 lg:pb-12">
+            <div className="grid gap-6 lg:grid-cols-2 lg:items-stretch">
+              <MachineHero machine={machine} />
+              <MachineDetails machine={machine} machines={machines} averageValue={machineAverageValue} />
+            </div>
 
-          <div className="mt-6 grid gap-6 lg:grid-cols-2">
-            {/* Both feeds are a fixed height and scroll internally, so the row never
-                grows with the amount of stock and stays a little taller than the
-                machine row above it. */}
-            <section
-              aria-labelledby="top-items-heading"
-              className="panel flex h-[560px] min-w-0 flex-col p-4 lg:h-[860px]"
-            >
-              <h2 id="top-items-heading" className="mb-4 shrink-0 text-center text-2xl font-semibold text-white">
-                Top Items
-              </h2>
-              <div className="scrollbar-none min-h-0 flex-1 overflow-y-auto overscroll-contain">
-                <Suspense fallback={<TopItemsSkeleton />}>
-                  <TopItems machine={machine} />
-                </Suspense>
-              </div>
-            </section>
-            <section
-              aria-labelledby="recent-pulls-heading"
-              className="panel flex h-[560px] min-w-0 flex-col p-4 lg:h-[860px]"
-            >
-              <h2 id="recent-pulls-heading" className="mb-4 shrink-0 text-center text-2xl font-semibold text-white">
-                Recent Pulls
-              </h2>
-              <div className="scrollbar-none min-h-0 flex-1 overflow-y-auto overscroll-contain">
-                <Suspense fallback={<RecentPullsSkeleton />}>
-                  <RecentPulls />
-                </Suspense>
-              </div>
-            </section>
-          </div>
-        </main>
-        <StickyPurchaseBar />
+            <div className="mt-6 grid gap-6 lg:grid-cols-2">
+              {/* Both feeds are a fixed height and scroll internally, so the row never
+                  grows with the amount of stock and stays a little taller than the
+                  machine row above it. */}
+              <section
+                aria-labelledby="top-items-heading"
+                className="panel flex h-[560px] min-w-0 flex-col p-4 lg:h-[860px]"
+              >
+                <h2 id="top-items-heading" className="mb-4 shrink-0 text-center text-2xl font-semibold text-white">
+                  Top Items
+                </h2>
+                <div className="scrollbar-none min-h-0 flex-1 overflow-y-auto overscroll-contain">
+                  <Suspense fallback={<TopItemsSkeleton />}>
+                    <TopItems machine={machine} />
+                  </Suspense>
+                </div>
+              </section>
+              <section
+                aria-labelledby="recent-pulls-heading"
+                className="panel flex h-[560px] min-w-0 flex-col p-4 lg:h-[860px]"
+              >
+                <h2 id="recent-pulls-heading" className="mb-4 shrink-0 text-center text-2xl font-semibold text-white">
+                  Recent Pulls
+                </h2>
+                <div className="scrollbar-none min-h-0 flex-1 overflow-y-auto overscroll-contain">
+                  <Suspense fallback={<RecentPullsSkeleton />}>
+                    <RecentPulls />
+                  </Suspense>
+                </div>
+              </section>
+            </div>
+          </main>
+          <StickyPurchaseBar />
         </div>
         <ClawFlow machine={machine} preview={preview} wallet={wallet} />
       </ClawFlowProvider>

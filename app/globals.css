@@ -75,10 +75,6 @@ button:disabled {
   cursor: not-allowed;
 }
 
-dialog::backdrop {
-  background: transparent;
-}
-
 /* Native dialogs (Top Items and Odds) use the same gentle entrance as the
    custom pull overlay. Respect the system setting by leaving them instant. */
 @media (prefers-reduced-motion: no-preference) {
@@ -152,8 +148,4 @@ dialog::backdrop {
   &::-webkit-scrollbar {
     display: none;
   }
-}
-
-@utility text-balance {
-  text-wrap: balance;
 }
