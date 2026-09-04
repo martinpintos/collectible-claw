@@ -28,7 +28,7 @@ export function RevealSingle({
   return (
     <div className="relative flex h-full flex-col overflow-y-auto">
       {/* Padding matches the content column so the glyph sits on the card's edge line. */}
-      <div className="pt-safe sticky top-0 z-10 flex justify-end px-4 pb-1 pt-5 sm:px-8 sm:pt-6">
+      <div className="sticky top-0 z-10 flex justify-end px-4 pb-1 pt-[calc(1.25rem+env(safe-area-inset-top))] sm:px-8 sm:pt-[calc(1.5rem+env(safe-area-inset-top))]">
         <button
           type="button"
           aria-label="Close"

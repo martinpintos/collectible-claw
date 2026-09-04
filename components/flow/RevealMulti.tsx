@@ -59,7 +59,7 @@ export function RevealMulti({
 
   return (
     <div className="relative flex h-full flex-col overflow-hidden">
-      <div className="pt-safe sticky top-0 z-10 flex items-center justify-end px-4 py-3">
+      <div className="sticky top-0 z-10 flex items-center justify-end px-4 py-3 pt-[calc(0.75rem+env(safe-area-inset-top))]">
         <IconButton label="Close" onClick={onClose} disabled={pending} className="bg-black/40 backdrop-blur-md">
           <X className="size-5" />
         </IconButton>
@@ -89,7 +89,7 @@ export function RevealMulti({
         </motion.ul>
       </div>
 
-      <div className="pb-safe absolute inset-x-0 bottom-0 z-10 border-t border-border/80 bg-bg/90 backdrop-blur-md">
+      <div className="absolute inset-x-0 bottom-0 z-10 border-t border-border/80 bg-bg/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md">
         {error ? (
           <p role="alert" className="mx-auto max-w-6xl px-4 pt-3 text-sm text-danger sm:px-8">
             {error}
