@@ -45,7 +45,6 @@ export function SlabCard({
           sizes={sizes}
           quality={90}
           loading={priority ? "eager" : "lazy"}
-          preload={priority}
           className="object-cover"
         />
       ) : (
