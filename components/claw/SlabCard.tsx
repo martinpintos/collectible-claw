@@ -2,7 +2,7 @@ import Image from "next/image";
 import type { Grader } from "@/lib/domain/types";
 import { cn } from "@/lib/utils/cn";
 
-export interface SlabCardProps {
+interface SlabCardProps {
   name: string;
   grade: string;
   grader?: Grader;

@@ -21,7 +21,7 @@ import { RevealVideoLayer } from "./RevealVideoLayer";
 import { SwapSuccess } from "./SwapSuccess";
 
 /** Minimum time the "Do not refresh" screen stays up, even if everything is instant. */
-export const MIN_PREPARING_MS = 6000;
+const MIN_PREPARING_MS = 6000;
 const MIN_SWAP_MS = 1100;
 
 function delay(ms: number) {

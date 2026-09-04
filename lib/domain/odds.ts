@@ -58,7 +58,7 @@ export function tiersInOrder(tiers: RarityTier[]): RarityTier[] {
   return TIER_ORDER.map((id) => tiers.find((t) => t.id === id)!).filter(Boolean);
 }
 
-export function bpsToPercent(bps: number): number {
+function bpsToPercent(bps: number): number {
   return bps / 100;
 }
 

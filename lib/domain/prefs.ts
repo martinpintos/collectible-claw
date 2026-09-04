@@ -1,7 +1,7 @@
 import type { Prefs } from "./types";
 
 export const PREFS_COOKIE = "cc_prefs";
-export const PREFS_MAX_AGE = 60 * 60 * 24 * 365;
+const PREFS_MAX_AGE = 60 * 60 * 24 * 365;
 export const DEFAULT_PREFS: Prefs = { sound: false, animation: true };
 
 /** Compact cookie payload, e.g. "s1a0" = sound on, animation off. */

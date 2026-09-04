@@ -6,7 +6,7 @@ import { useHaptics } from "@/hooks/use-haptics";
 import { useClawFlow } from "@/store/claw-flow-provider";
 import { cn } from "@/lib/utils/cn";
 
-export function PurchaseControls({ className, ctaLabel = "Start Now" }: { className?: string; ctaLabel?: string }) {
+function PurchaseControls({ className, ctaLabel = "Start Now" }: { className?: string; ctaLabel?: string }) {
   const { quantity, maxQuantity, phase, dispatch } = useClawFlow((s) => ({
     quantity: s.quantity,
     maxQuantity: s.maxQuantity,

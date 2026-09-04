@@ -1,6 +1,6 @@
 import type { Machine, Promo } from "./types";
 
-export const SWAP_POINTS_MULTIPLIER = 1.6;
+const SWAP_POINTS_MULTIPLIER = 1.6;
 /** How long a swap offer stays open after a pull. */
 export const SWAP_WINDOW_MS = 15 * 60 * 1000;
 
@@ -8,7 +8,7 @@ export function round2(value: number): number {
   return Math.round((value + Number.EPSILON) * 100) / 100;
 }
 
-export interface Quote {
+interface Quote {
   unitPrice: number;
   quantity: number;
   subtotal: number;

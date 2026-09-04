@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 import { useId } from "react";
 import { cn } from "@/lib/utils/cn";
 
-export interface SegmentedOption<T extends string> {
+interface SegmentedOption<T extends string> {
   value: T;
   label: string;
 }

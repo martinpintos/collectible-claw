@@ -24,7 +24,7 @@ export interface PreloadState {
   error: string | null;
 }
 
-export interface PreloaderOptions {
+interface PreloaderOptions {
   fetchImpl?: typeof fetch;
   createObjectURL?: (blob: Blob) => string;
   /** Milliseconds to wait for `canplaythrough` before accepting a lower readyState. */
@@ -193,7 +193,7 @@ export function createPreloader(options: PreloaderOptions = {}) {
   };
 }
 
-export type Preloader = ReturnType<typeof createPreloader>;
+type Preloader = ReturnType<typeof createPreloader>;
 
 const registry = new Map<string, Preloader>();
 

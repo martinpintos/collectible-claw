@@ -3,7 +3,14 @@
 import { refresh } from "next/cache";
 import { cookies } from "next/headers";
 import { z } from "zod";
-import { getCatalog, getMachine, getPull, markSwapped, recordRecentPull, savePull } from "@/lib/data/repository";
+import {
+  getCatalog,
+  getMachine,
+  getPull,
+  markSwapped,
+  recordRecentPull,
+  savePull,
+} from "@/lib/data/repository";
 import { findPromo, normalizePromoCode } from "@/lib/data/promos";
 import { drawItems } from "@/lib/domain/draw";
 import { SWAP_WINDOW_MS, priceFor, round2, swapPoints, swapValue } from "@/lib/domain/pricing";
@@ -26,13 +33,11 @@ const pullInput = z.object({
   paymentMethod: z.enum(["wallet", "card"]),
   wallet: z.enum(["beezie", "external"]).optional(),
 });
-export type PullInput = z.infer<typeof pullInput>;
 
 const swapInput = z.object({
   pullId: z.string().uuid(),
   itemIds: z.array(z.string().min(1).max(64)).min(1).max(10),
 });
-export type SwapInput = z.infer<typeof swapInput>;
 
 const promoInput = z.object({ code: z.string().trim().min(1).max(20) });
 
@@ -64,7 +69,8 @@ export async function applyPromo(raw: unknown): Promise<ActionResult<Promo>> {
   const parsed = promoInput.safeParse(raw);
   if (!parsed.success) return fail("INVALID_INPUT", "Enter a promo code.");
   const promo = findPromo(parsed.data.code);
-  if (!promo) return fail("INVALID_PROMO", `"${normalizePromoCode(parsed.data.code)}" is not a valid code.`);
+  if (!promo)
+    return fail("INVALID_PROMO", `"${normalizePromoCode(parsed.data.code)}" is not a valid code.`);
   return { ok: true, data: promo };
 }
 
@@ -80,13 +86,16 @@ export async function pullFromMachine(raw: unknown): Promise<ActionResult<PullRe
   const machine = await getMachine(input.machineSlug);
   if (!machine) return fail("NOT_FOUND", "Machine not found.");
 
-  const promo = input.promoCode ? findPromo(input.promoCode) ?? null : null;
+  const promo = input.promoCode ? (findPromo(input.promoCode) ?? null) : null;
   const quote = priceFor(machine, input.quantity, promo);
 
   const wallet = await readWallet();
   if (input.paymentMethod === "wallet") {
     if (input.wallet === "external") {
-      return fail("INSUFFICIENT_FUNDS", "External wallet is view-only in this demo. Use your Beezie wallet.");
+      return fail(
+        "INSUFFICIENT_FUNDS",
+        "External wallet is view-only in this demo. Use your Beezie wallet.",
+      );
     }
     if (wallet.balance < quote.total) {
       return fail("INSUFFICIENT_FUNDS", "Not enough balance in your Beezie wallet.");
@@ -102,7 +111,8 @@ export async function pullFromMachine(raw: unknown): Promise<ActionResult<PullRe
   }));
 
   const nextWallet: WalletSnapshot = {
-    balance: input.paymentMethod === "wallet" ? round2(wallet.balance - quote.total) : wallet.balance,
+    balance:
+      input.paymentMethod === "wallet" ? round2(wallet.balance - quote.total) : wallet.balance,
     points: wallet.points + quote.points,
   };
 
@@ -143,12 +153,15 @@ export async function swapItems(raw: unknown): Promise<ActionResult<SwapResult>>
 
   const pull = getPull(pullId);
   if (!pull) return fail("NOT_FOUND", "This pull has expired. Please pull again.");
-  if (Date.now() > Date.parse(pull.expiresAt)) return fail("EXPIRED", "The swap offer has expired.");
+  if (Date.now() > Date.parse(pull.expiresAt))
+    return fail("EXPIRED", "The swap offer has expired.");
 
   const unique = [...new Set(itemIds)];
   const items = unique.map((id) => pull.items.find((item) => item.instanceId === id));
-  if (items.some((item) => !item)) return fail("INVALID_INPUT", "One of those items isn't part of this pull.");
-  if (unique.some((id) => pull.swappedIds.has(id))) return fail("INVALID_INPUT", "Item already swapped.");
+  if (items.some((item) => !item))
+    return fail("INVALID_INPUT", "One of those items isn't part of this pull.");
+  if (unique.some((id) => pull.swappedIds.has(id)))
+    return fail("INVALID_INPUT", "Item already swapped.");
 
   const credited = round2(items.reduce((sum, item) => sum + item!.swapValue, 0));
   const points = swapPoints(credited);
@@ -160,5 +173,8 @@ export async function swapItems(raw: unknown): Promise<ActionResult<SwapResult>>
 
   markSwapped(pullId, unique);
   await writeWallet(nextWallet);
-  return { ok: true, data: { pullId, swappedItemIds: unique, credited, points, wallet: nextWallet } };
+  return {
+    ok: true,
+    data: { pullId, swappedItemIds: unique, credited, points, wallet: nextWallet },
+  };
 }

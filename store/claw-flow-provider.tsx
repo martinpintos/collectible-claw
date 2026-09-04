@@ -6,7 +6,6 @@ import { useShallow } from "zustand/shallow";
 import {
   createClawFlowStore,
   type ClawFlowStoreApi,
-  type FlowEvent,
   type FlowStore,
 } from "./claw-flow";
 
@@ -33,8 +32,4 @@ export function useClawFlowApi(): ClawFlowStoreApi {
 
 export function useClawFlow<T>(selector: (state: FlowStore) => T): T {
   return useStore(useClawFlowApi(), useShallow(selector));
-}
-
-export function useFlowDispatch(): (event: FlowEvent) => void {
-  return useClawFlowApi().getState().dispatch;
 }

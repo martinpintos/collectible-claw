@@ -13,7 +13,3 @@ export function useMediaQuery(query: string, serverFallback = false): boolean {
     () => serverFallback,
   );
 }
-
-export function usePrefersReducedMotion(): boolean {
-  return useMediaQuery("(prefers-reduced-motion: reduce)");
-}

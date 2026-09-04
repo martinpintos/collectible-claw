@@ -5,7 +5,7 @@ import { motion } from "motion/react";
 import { useHaptics } from "@/hooks/use-haptics";
 import { cn } from "@/lib/utils/cn";
 
-export interface StepperProps {
+interface StepperProps {
   value: number;
   min?: number;
   max: number;

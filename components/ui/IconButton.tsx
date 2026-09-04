@@ -4,7 +4,7 @@ import { motion, type HTMLMotionProps } from "motion/react";
 import { forwardRef } from "react";
 import { cn } from "@/lib/utils/cn";
 
-export interface IconButtonProps extends HTMLMotionProps<"button"> {
+interface IconButtonProps extends HTMLMotionProps<"button"> {
   label: string;
 }
 

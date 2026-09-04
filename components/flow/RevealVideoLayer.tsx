@@ -8,7 +8,7 @@ import { REVEAL_DURATION_S, REVEAL_TAIL_AT_S } from "@/lib/video/sources";
 import { TogglePill } from "@/components/ui/TogglePill";
 import { cn } from "@/lib/utils/cn";
 
-export interface RevealVideoLayerProps {
+interface RevealVideoLayerProps {
   videoRef: RefObject<HTMLVideoElement | null>;
   active: boolean;
   sound: boolean;

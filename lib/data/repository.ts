@@ -24,7 +24,7 @@ const LATENCY = {
   recentPulls: 600,
 } as const;
 
-export function delay(ms: number): Promise<void> {
+function delay(ms: number): Promise<void> {
   if (ms <= 0) return Promise.resolve();
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -37,10 +37,6 @@ export async function getMachines(): Promise<Machine[]> {
 export async function getMachine(slug: string = DEFAULT_MACHINE_SLUG): Promise<Machine | null> {
   await delay(LATENCY.machine);
   return findMachine(slug) ?? null;
-}
-
-export function getMachineSlugs(): string[] {
-  return MACHINES.map((m) => m.slug);
 }
 
 function toCatalogItem(machine: Machine, entryId: string): CatalogItem | null {

@@ -16,7 +16,7 @@ import type { Machine, PaymentMethod, Promo, WalletChoice, WalletSnapshot } from
 import { EXTERNAL_WALLET_BALANCE } from "@/lib/domain/wallet";
 import type { FlowEvent } from "@/store/claw-flow";
 
-export interface PaymentModalProps {
+interface PaymentModalProps {
   machine: Machine;
   wallet: WalletSnapshot;
   quantity: number;

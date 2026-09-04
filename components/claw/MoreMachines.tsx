@@ -4,7 +4,7 @@ import { DEFAULT_MACHINE_SLUG } from "@/lib/data/machines";
 import { money } from "@/lib/domain/format";
 import type { Machine } from "@/lib/domain/types";
 
-export function machineHref(slug: string): string {
+function machineHref(slug: string): string {
   return slug === DEFAULT_MACHINE_SLUG ? "/" : `/claw/${slug}`;
 }
 

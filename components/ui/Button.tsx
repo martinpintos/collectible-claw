@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils/cn";
 type Variant = "brand" | "secondary" | "ghost" | "outline";
 type Size = "sm" | "md" | "lg";
 
-export interface ButtonProps extends Omit<HTMLMotionProps<"button">, "children"> {
+interface ButtonProps extends Omit<HTMLMotionProps<"button">, "children"> {
   variant?: Variant;
   size?: Size;
   pending?: boolean;

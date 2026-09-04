@@ -226,16 +226,12 @@ export function transition<S extends FlowState>(state: S, event: FlowEvent): S {
 }
 
 /* ------------------------------------------------------------------ selectors */
-export const isMulti = (s: FlowState) => (s.pull?.items.length ?? 0) > 1;
-export const selectedItems = (s: FlowState) =>
+const selectedItems = (s: FlowState) =>
   s.pull?.items.filter((item) => s.selectedIds.includes(item.instanceId)) ?? [];
 export const selectedTotal = (s: FlowState) =>
   Math.round(selectedItems(s).reduce((sum, item) => sum + item.swapValue, 0) * 100) / 100;
 export const canSwap = (s: FlowState) =>
   s.phase === "reveal" && !s.expired && s.selectedIds.length > 0;
-export const isOpen = (s: FlowState) => s.phase !== "idle";
-export const isBusy = (s: FlowState) =>
-  s.phase === "preparing" || s.phase === "opening" || s.phase === "swapping";
 
 /* --------------------------------------------------------------------- store */
 export type FlowStore = FlowState & { dispatch: (event: FlowEvent) => void };

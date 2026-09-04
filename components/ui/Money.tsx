@@ -34,15 +34,3 @@ export function Money({
     />
   );
 }
-
-export function Points({ value, className }: { value: number; className?: string }) {
-  return (
-    <NumberFlow
-      value={value}
-      locales="en-US"
-      prefix="+"
-      suffix={value === 1 ? " point" : " points"}
-      className={cn("tabular-nums", className)}
-    />
-  );
-}

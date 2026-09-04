@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils/cn";
 
-export interface TogglePillProps {
+interface TogglePillProps {
   pressed: boolean;
   onClick: () => void;
   icon: ReactNode;
