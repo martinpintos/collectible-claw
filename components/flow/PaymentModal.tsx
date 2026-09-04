@@ -1,6 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
@@ -96,47 +97,76 @@ export function PaymentModal({
         ) : null}
       </section>
 
-      {paymentMethod === "wallet" ? (
-        <section aria-label="Choose wallet" className="space-y-2">
-          <h3 className="text-sm font-semibold text-fg">Choose Wallet</h3>
-          <div className="grid grid-cols-2 gap-2">
-            <RadioCard
-              name="wallet"
-              checked={walletChoice === "beezie"}
-              onSelect={() => {
-                haptics.fire("select");
-                dispatch({ type: "SET_WALLET", wallet: "beezie" });
-              }}
-              title="Beezie wallet"
-              description={money(wallet.balance)}
-            />
-            <RadioCard
-              name="wallet"
-              checked={walletChoice === "external"}
-              onSelect={() => {
-                haptics.fire("select");
-                dispatch({ type: "SET_WALLET", wallet: "external" });
-              }}
-              title="External wallet"
-              description={money(EXTERNAL_WALLET_BALANCE)}
-            />
-          </div>
-        </section>
-      ) : (
-        <section aria-label="Card payment" className="flex h-32 items-center justify-center rounded-control border border-dashed border-border text-sm text-fg-secondary">
-          Coinflow widget
-        </section>
-      )}
+      <AnimatePresence initial={false} mode="wait">
+        {paymentMethod === "wallet" ? (
+          <motion.section
+            key="wallet"
+            aria-label="Choose wallet"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            className="space-y-2"
+          >
+            <h3 className="text-sm font-semibold text-fg">Choose Wallet</h3>
+            <div className="grid grid-cols-2 gap-2">
+              <RadioCard
+                name="wallet"
+                checked={walletChoice === "beezie"}
+                onSelect={() => {
+                  haptics.fire("select");
+                  dispatch({ type: "SET_WALLET", wallet: "beezie" });
+                }}
+                title="Beezie wallet"
+                description={money(wallet.balance)}
+              />
+              <RadioCard
+                name="wallet"
+                checked={walletChoice === "external"}
+                onSelect={() => {
+                  haptics.fire("select");
+                  dispatch({ type: "SET_WALLET", wallet: "external" });
+                }}
+                title="External wallet"
+                description={money(EXTERNAL_WALLET_BALANCE)}
+              />
+            </div>
+          </motion.section>
+        ) : (
+          <motion.section
+            key="card"
+            aria-label="Card payment"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            className="flex h-32 items-center justify-center rounded-control border border-dashed border-border text-sm text-fg-secondary"
+          >
+            Coinflow widget
+          </motion.section>
+        )}
+      </AnimatePresence>
 
-      {error || (touched && insufficient) ? (
-        <p role="alert" className="rounded-input bg-danger/10 px-3 py-2 text-sm text-danger">
-          {error ?? "Not enough balance in your Beezie wallet."}
-        </p>
-      ) : null}
+      <AnimatePresence initial={false} mode="wait">
+        {error || (touched && insufficient) ? (
+          <motion.p
+            key={error ?? "insufficient-funds"}
+            role="alert"
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.16, ease: "easeOut" }}
+            className="rounded-input bg-danger/10 px-3 py-2 text-sm text-danger"
+          >
+            {error ?? "Not enough balance in your Beezie wallet."}
+          </motion.p>
+        ) : null}
+      </AnimatePresence>
 
       <Button
         size="lg"
         fullWidth
+        glow
         pending={pending}
         onClick={() => {
           setTouched(true);

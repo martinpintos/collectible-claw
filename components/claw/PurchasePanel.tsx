@@ -25,6 +25,7 @@ export function PurchaseControls({ className, ctaLabel = "Start Now" }: { classN
       <Button
         size="lg"
         fullWidth
+        glow
         disabled={phase !== "idle"}
         onClick={() => {
           haptics.fire("confirm");
