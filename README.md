@@ -1,5 +1,9 @@
 # Beezie Claw — pull & reveal
 
+![The Solana Claw machine page: the idle claw with its sound and animation toggles, alongside the price, quantity stepper, promo field and the rarity odds grid.](docs/preview.png)
+
+**[Live demo →](https://collectible-claw.vercel.app/)**
+
 A standalone rebuild of the [Beezie](https://beezie.com) digital claw machine flow: pick a machine, choose a quantity, pay, watch the reveal, then keep the graded collectible or swap it back instantly for a percentage of its market value.
 
 Everything behind the glass is mocked — wallet, inventory, RNG, payments. What is real is the front end: server rendering, a reveal video that never stalls, a state machine you can test without a browser, and the motion and haptics that make the pull feel like something.
