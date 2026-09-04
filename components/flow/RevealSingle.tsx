@@ -27,16 +27,17 @@ export function RevealSingle({
 }) {
   return (
     <div className="relative flex h-full flex-col overflow-y-auto">
-      <div className="pt-safe sticky top-0 z-10 flex justify-end p-4 sm:p-3">
+      {/* Padding matches the content column so the glyph sits on the card's edge line. */}
+      <div className="pt-safe sticky top-0 z-10 flex justify-end px-4 pb-1 pt-5 sm:px-8 sm:pt-6">
         <button
           type="button"
           aria-label="Close"
           title="Close"
           onClick={onClose}
           disabled={pending}
-          className="inline-flex size-5 items-center justify-center text-fg-secondary transition-colors hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/70 disabled:opacity-50"
+          className="-mr-2 inline-flex size-9 items-center justify-center rounded-full text-fg-secondary transition-colors hover:bg-white/10 hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/70 disabled:opacity-50"
         >
-          <X className="size-5" />
+          <X className="size-5" strokeWidth={1.5} />
         </button>
       </div>
       <div className="mx-auto grid w-full max-w-[1180px] flex-1 items-center gap-3 px-4 pb-4 sm:gap-8 sm:px-8 sm:pb-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-10">
@@ -44,7 +45,7 @@ export function RevealSingle({
           initial={{ opacity: 0, scale: 0.82, y: 32 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 220, damping: 22, delay: 0.05 }}
-          className="mx-auto w-full max-w-[300px] sm:max-w-[440px] lg:max-w-[480px]"
+          className="mx-auto w-full sm:max-w-[440px] lg:max-w-[480px]"
         >
           <HexPanel className="rounded-2xl">
             <SlabCard
@@ -53,7 +54,7 @@ export function RevealSingle({
               grader={item.grader}
               set={item.set}
               imageSrc={item.imageSrc}
-              sizes="(min-width: 1024px) 480px, (min-width: 640px) 440px, 300px"
+              sizes="(min-width: 1024px) 480px, (min-width: 640px) 440px, 100vw"
               priority
             />
           </HexPanel>
