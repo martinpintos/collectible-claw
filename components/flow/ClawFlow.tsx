@@ -1,11 +1,12 @@
 "use client";
 
-import { AnimatePresence, animate, motion, useMotionValue } from "motion/react";
+import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { pullFromMachine, swapItems } from "@/app/actions";
 import { useHaptics } from "@/hooks/use-haptics";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useRevealVideo } from "@/hooks/use-reveal-video";
+import { fireSideCannons } from "@/lib/effects/confetti";
 import type { CatalogItem, Machine, WalletSnapshot } from "@/lib/domain/types";
 import { canSwap, selectedTotal as selectTotal } from "@/store/claw-flow";
 import { useClawFlow, useClawFlowApi } from "@/store/claw-flow-provider";
@@ -60,11 +61,24 @@ export function ClawFlow({
   const [closing, setClosing] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isMobile = useMediaQuery("(max-width: 639px)");
+  const reduceMotion = useReducedMotion();
+  const celebrated = useRef<string | null>(null);
 
   /* ---------------------------------------------------------- preload gate */
   useEffect(() => {
     if (reveal.state.status === "ready") dispatch({ type: "VIDEO_READY" });
   }, [reveal.state.status, dispatch]);
+
+  /* --------------------------------------------------- reveal celebration */
+  // Fires as the reveal takes over from the opening video, once per pull: a
+  // failed swap drops back to `reveal` and must not set the cannons off again.
+  const pullId = flow.pull?.pullId ?? null;
+  useEffect(() => {
+    if (flow.phase !== "reveal" || !pullId || reduceMotion) return;
+    if (celebrated.current === pullId) return;
+    celebrated.current = pullId;
+    return fireSideCannons();
+  }, [flow.phase, pullId, reduceMotion]);
 
   /* ------------------------------------------------ preparing progress bar */
   const timerProgress = useMotionValue(0);
