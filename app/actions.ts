@@ -125,7 +125,7 @@ export async function pullFromMachine(raw: unknown): Promise<ActionResult<PullRe
       id: item.instanceId,
       itemId: item.id,
       itemName: item.name,
-      user: "you",
+      user: "Martin",
       price: item.marketValue,
       imageSrc: item.imageSrc,
       at: new Date().toISOString(),

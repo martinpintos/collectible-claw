@@ -20,8 +20,7 @@ export async function RecentPulls() {
             <p className="text-sm text-fg-secondary">{pull.user}</p>
           </div>
           <div className="shrink-0 text-right">
-            <div className="text-[11px] text-fg-secondary">~FMV</div>
-            <div className="text-lg font-semibold leading-tight text-fg">{money(pull.price)}</div>
+            <span className="text-lg font-semibold leading-tight text-fg">{money(pull.price)}</span>
           </div>
         </li>
       ))}
