@@ -158,6 +158,14 @@ describe("transition – reveal and swap", () => {
     expect(transition(state, { type: "TOGGLE_SELECT", id: "nope" })).toBe(state);
   });
 
+  it("a clip that cannot play still reaches the reveal", () => {
+    const opening = run(
+      [{ type: "START" }, { type: "CONFIRM" }, { type: "PULL_SUCCEEDED", pull: pull(1) }, { type: "VIDEO_READY" }, { type: "MIN_TIMER_DONE" }],
+    );
+    expect(opening.phase).toBe("opening");
+    expect(transition(opening, { type: "VIDEO_UNAVAILABLE" }).phase).toBe("reveal");
+  });
+
   it("video events are idempotent once in reveal", () => {
     expect(transition(revealSingle, { type: "VIDEO_ENDED" })).toBe(revealSingle);
     expect(transition(revealSingle, { type: "VIDEO_TAIL" })).toBe(revealSingle);

@@ -45,7 +45,7 @@ export function RevealVideoLayer({
     if (!active) return;
     const video = videoRef.current;
     if (!video) {
-      dispatch({ type: "SKIP_VIDEO" });
+      dispatch({ type: "VIDEO_UNAVAILABLE" });
       return;
     }
     let cancelled = false;
@@ -71,12 +71,13 @@ export function RevealVideoLayer({
     const backup = setInterval(sample, 100);
 
     const onEnded = () => dispatch({ type: "VIDEO_ENDED" });
-    const skipVideo = () => dispatch({ type: "SKIP_VIDEO" });
-    const onError = () => skipVideo();
+    // There is no skip control by design; this is the failure path only.
+    const giveUp = () => dispatch({ type: "VIDEO_UNAVAILABLE" });
+    const onError = () => giveUp();
     const onVisibility = () => {
       if (document.visibilityState !== "visible") return;
       if (video.ended) dispatch({ type: "VIDEO_ENDED" });
-      else if (video.paused) void video.play().catch(skipVideo);
+      else if (video.paused) void video.play().catch(giveUp);
     };
     video.addEventListener("ended", onEnded);
     video.addEventListener("error", onError);
@@ -88,7 +89,7 @@ export function RevealVideoLayer({
     play(soundRef.current).catch(() => {
       // Autoplay with sound refused – retry muted before giving up.
       video.muted = true;
-      return video.play().catch(skipVideo);
+      return video.play().catch(giveUp);
     });
     frame = requestAnimationFrame(tick);
 

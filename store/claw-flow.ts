@@ -52,7 +52,8 @@ export type FlowEvent =
   | { type: "MIN_TIMER_DONE" }
   | { type: "VIDEO_TAIL" }
   | { type: "VIDEO_ENDED" }
-  | { type: "SKIP_VIDEO" }
+  /** The clip cannot play (missing element, media error, autoplay refused). */
+  | { type: "VIDEO_UNAVAILABLE" }
   | { type: "TOGGLE_SELECT"; id: string }
   | { type: "SELECT_ALL" }
   | { type: "CLEAR_SELECTION" }
@@ -167,7 +168,7 @@ export function transition<S extends FlowState>(state: S, event: FlowEvent): S {
 
     case "VIDEO_TAIL":
     case "VIDEO_ENDED":
-    case "SKIP_VIDEO":
+    case "VIDEO_UNAVAILABLE":
       if (state.phase !== "opening") return state;
       return { ...state, phase: "reveal" };
 
